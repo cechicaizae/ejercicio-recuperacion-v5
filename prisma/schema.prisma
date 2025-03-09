@@ -1,0 +1,41 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id            Int      @id @default(autoincrement()) @map("idUsuario")
+  nombre        String   @db.VarChar(100)
+  usuario       String   @unique @db.VarChar(50)
+  clave         String   @db.VarChar(255)
+  rol           String   @db.Enum("Administrador", "Empleado", "Usuario")
+  ticketsCreados    Ticket[] @relation("UsuarioCreador")
+  ticketsAsignados  Ticket[] @relation("EmpleadoAsignado")
+
+  @@map("Usuarios")
+}
+
+model Ticket {
+  id            Int       @id @default(autoincrement()) @map("idTicket")
+  creador       Usuario   @relation("UsuarioCreador", fields: [idUsuario], references: [id])
+  idUsuario     Int
+  empleado      Usuario?  @relation("EmpleadoAsignado", fields: [idEmpleado], references: [id])
+  idEmpleado    Int?
+  descripcion   String    @db.Text
+  fechaCreacion DateTime  @default(now()) @map("fechaCreacion")
+  fechaCierre   DateTime? @map("fechaCierre")
+  prioridad     String    @default("Media") @db.Enum("Baja", "Media", "Alta", "Crítica")
+  estado        String    @default("Pendiente") @db.Enum("Pendiente", "En Proceso", "Resuelto", "Rechazado")
+
+  @@map("Tickets")
+}
